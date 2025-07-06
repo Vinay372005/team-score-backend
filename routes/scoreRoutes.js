@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const Score = require("../models/score");
+const Score = require("../models/Score");
 
 router.get("/", async (req, res) => {
   const score = await Score.findOne().sort({ _id: -1 });
