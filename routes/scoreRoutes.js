@@ -18,4 +18,4 @@ router.post("/", async (req, res) => {
   res.status(200).json(newScore);
 });
 
-module.exports = router;
+export default router;
