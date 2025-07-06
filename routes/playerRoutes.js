@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const Player = require("../models/Player");
+const Player = require("../models/player");
 const multer = require("multer");
 const cloudinary = require("cloudinary").v2;
 const twilio = require("twilio");
