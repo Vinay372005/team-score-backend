@@ -1,10 +1,13 @@
-const mongoose = require("mongoose");
 
-const PlayerSchema = new mongoose.Schema({
+import mongoose from 'mongoose';
+
+const playerSchema = new mongoose.Schema({
   name: String,
   role: String,
   phone: String,
-  photoURL: String
+  image: String 
 });
 
-module.exports = mongoose.model("Player", PlayerSchema);
+const Player = mongoose.model('Player', playerSchema);
+
+export default Player;
