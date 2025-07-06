@@ -1,7 +1,7 @@
 // routes/playerRoutes.js
 import express from 'express';
 import multer from 'multer';
-import Player from '../models/player.js';
+import Player from '../models/Player.js';
 
 const router = express.Router();
 
