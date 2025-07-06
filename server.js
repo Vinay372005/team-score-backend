@@ -4,7 +4,7 @@ import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import playerRoutes from './routes/playerRoutes.js';
-import scoreRoutes from './routes/scoreRoutes.js';
+import  scoreRoutes from './routes/scoreRoutes.js';
 
 const app = express();
 dotenv.config();
