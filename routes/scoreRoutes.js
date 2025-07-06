@@ -1,21 +1,18 @@
-const express = require("express");
+// routes/scoreRoutes.js
+import express from 'express';
+
 const router = express.Router();
-const Score = require("../models/score.js");
 
-router.get("/", async (req, res) => {
-  const score = await Score.findOne().sort({ _id: -1 });
-  res.json(score);
-});
+// Example: POST score
+router.post('/api/scores', async (req, res) => {
+  const { runs, wickets, overs } = req.body;
 
-router.post("/", async (req, res) => {
-  const { password, runs, wickets, overs, status } = req.body;
-  if (password !== process.env.ADMIN_PASS) {
-    return res.status(401).json({ message: "Unauthorized" });
+  try {
+    // You can store this in a database if needed
+    res.status(200).json({ message: "Score updated", runs, wickets, overs });
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' });
   }
-
-  const newScore = new Score({ runs, wickets, overs, status });
-  await newScore.save();
-  res.status(200).json(newScore);
 });
 
 export default router;
