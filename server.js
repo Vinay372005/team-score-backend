@@ -14,7 +14,7 @@ app.use("/api/players", playerRoutes);
 app.use("/api/scores", scoreRoutes);
 
 mongoose
-  .connect(process.env.MONGO_URI)
+  .connect(process.env.DB_URI)
   .then(() => console.log("MongoDB connected"))
   .catch(err => console.log("MongoDB error", err));
 
