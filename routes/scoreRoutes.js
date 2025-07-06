@@ -1,4 +1,3 @@
-// routes/scoreRoutes.js
 import express from 'express';
 
 const router = express.Router();
