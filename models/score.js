@@ -1,11 +1,16 @@
 import mongoose from 'mongoose';
 
 const scoreSchema = new mongoose.Schema({
-  runs: Number,
-  wickets: Number,
-  overs: Number,
-  opponent: String,
-  date: { type: Date, default: Date.now }
+  runs: {
+    type: Number,
+    default: 0,
+  },
+  overs: {
+    type: String,
+    default: '0.0',
+  },
 });
 
-export default mongoose.model('Score', scoreSchema);
+const Score = mongoose.model('Score', scoreSchema);
+
+export default Score;
