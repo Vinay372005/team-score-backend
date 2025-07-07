@@ -2,6 +2,8 @@ import express from 'express';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import cors from 'cors';
+import fs from 'fs';
+import path from 'path';
 
 import playerRoutes from './routes/playerRoutes.js';
 import scoreRoutes from './routes/scoreRoutes.js';
@@ -9,6 +11,12 @@ import scoreRoutes from './routes/scoreRoutes.js';
 dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
+
+// Create uploads folder if missing
+const uploadsDir = path.join(process.cwd(), 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir);
+}
 
 // Middleware
 app.use('/uploads', express.static('uploads'));
