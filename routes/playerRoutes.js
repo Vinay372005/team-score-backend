@@ -1,34 +1,56 @@
-// routes/playerRoutes.js
 import express from 'express';
 import multer from 'multer';
 import Player from '../models/player.js';
+import sendSMS from '../utils/sendSMS.js';
+import path from 'path';
+import fs from 'fs';
 
 const router = express.Router();
 
-// ✅ Multer storage setup
+// Set up multer storage
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, 'uploads/');
+    const dir = 'uploads/';
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir);
+    }
+    cb(null, dir);
   },
   filename: function (req, file, cb) {
-    cb(null, Date.now() + '-' + file.originalname);
+    const uniqueName = Date.now() + '-' + file.originalname.replace(/\s+/g, '_');
+    cb(null, uniqueName);
+  },
+});
+const upload = multer({ storage });
+
+// POST: Add new player
+router.post('/', upload.single('photo'), async (req, res) => {
+  try {
+    const { name, role, phone } = req.body;
+    const photoPath = req.file ? req.file.path : '';
+
+    const player = new Player({ name, role, phone, photo: photoPath });
+    await player.save();
+
+    if (phone) {
+      await sendSMS(phone, `Hi ${name}, you are added to the team as ${role}!`);
+    }
+
+    res.status(201).json({ message: 'Player added successfully' });
+  } catch (err) {
+    console.error("❌ Error adding player:", err);
+    res.status(500).json({ error: 'Failed to add player' });
   }
 });
 
-const upload = multer({ storage: storage });
-
-// ✅ Route to add player with image
-router.post('/', upload.single('photo'), async (req, res) => {
-  const { name, role, phone } = req.body;
-  const image = req.file ? `/uploads/${req.file.filename}` : '';
-
+// GET: Get all players
+router.get('/', async (req, res) => {
   try {
-    const newPlayer = new Player({ name, role, phone, image });
-    await newPlayer.save();
-    res.status(201).json({ message: 'Player added!', player: newPlayer });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Error saving player' });
+    const players = await Player.find();
+    res.json(players);
+  } catch (err) {
+    console.error("❌ Error fetching players:", err);
+    res.status(500).json({ error: 'Failed to fetch players' });
   }
 });
 
