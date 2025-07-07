@@ -17,6 +17,9 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+app.use('/api/players', playerRoutes);
+app.use('/api/scores', scoreRoutes);
+
 // MongoDB connection
 console.log("🔍 Connecting to MongoDB:", process.env.DB_URI);  // For debug
 mongoose.connect(process.env.DB_URI, {
