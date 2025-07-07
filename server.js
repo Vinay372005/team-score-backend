@@ -2,8 +2,8 @@ import express from 'express';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import cors from 'cors';
-import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 
 import playerRoutes from './routes/playerRoutes.js';
 import scoreRoutes from './routes/scoreRoutes.js';
@@ -12,14 +12,13 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Create uploads folder if missing
-const uploadsDir = path.join(process.cwd(), 'uploads');
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir);
-}
+// Fix for __dirname in ES Modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-// Middleware
-app.use('/uploads', express.static('uploads'));
+// Serve uploaded images
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -29,7 +28,6 @@ app.use('/api/players', playerRoutes);
 app.use('/api/scores', scoreRoutes);
 
 // MongoDB connection
-console.log("🔍 Connecting to MongoDB:", process.env.DB_URI);
 mongoose.connect(process.env.DB_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
@@ -42,7 +40,6 @@ app.get('/', (req, res) => {
   res.send("✅ Team Score Backend is running");
 });
 
-// Start server
 app.listen(PORT, () => {
   console.log(`🚀 Server is running on port ${PORT}`);
 });
