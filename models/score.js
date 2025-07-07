@@ -1,10 +1,11 @@
-const mongoose = require("mongoose");
+import mongoose from 'mongoose';
 
-const ScoreSchema = new mongoose.Schema({
+const scoreSchema = new mongoose.Schema({
   runs: Number,
   wickets: Number,
-  overs: String,
-  status: String
+  overs: Number,
+  opponent: String,
+  date: { type: Date, default: Date.now }
 });
 
-module.exports = mongoose.model("Score", ScoreSchema);
+export default mongoose.model('Score', scoreSchema);
