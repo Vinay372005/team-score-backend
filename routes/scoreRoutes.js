@@ -1,16 +1,24 @@
 import express from 'express';
+import Score from '../models/Score.js';
 
 const router = express.Router();
 
-// Example: POST score
-router.post('/api/scores', async (req, res) => {
-  const { runs, wickets, overs } = req.body;
-
+router.get('/', async (req, res) => {
   try {
-    // You can store this in a database if needed
-    res.status(200).json({ message: "Score updated", runs, wickets, overs });
+    const scores = await Score.find();
+    res.json(scores);
   } catch (err) {
-    res.status(500).json({ error: 'Server error' });
+    res.status(500).json({ error: 'Failed to fetch scores' });
+  }
+});
+
+router.post('/', async (req, res) => {
+  try {
+    const score = new Score(req.body);
+    await score.save();
+    res.status(201).json(score);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to save score' });
   }
 });
 
