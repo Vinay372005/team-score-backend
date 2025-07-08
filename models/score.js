@@ -3,14 +3,26 @@ import mongoose from 'mongoose';
 const scoreSchema = new mongoose.Schema({
   runs: {
     type: Number,
-    default: 0,
+    required: true,
+    default: 0
   },
   overs: {
-    type: String,
-    default: '0.0',
+    type: Number,
+    required: true,
+    default: 0
   },
+  batsman: {
+    type: String,
+    default: ''
+  },
+  bowler: {
+    type: String,
+    default: ''
+  },
+  status: {
+    type: String,
+    default: 'Not Started' // Options: Not Started, Live, Finished
+  }
 });
 
-const Score = mongoose.model('Score', scoreSchema);
-
-export default Score;
+export default mongoose.model('Score', scoreSchema);
