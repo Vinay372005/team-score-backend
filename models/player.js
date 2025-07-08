@@ -3,22 +3,20 @@ import mongoose from 'mongoose';
 const playerSchema = new mongoose.Schema({
   name: {
     type: String,
-    required: true,
+    required: true
   },
   role: {
     type: String,
-    required: true,
+    required: true
   },
   phone: {
     type: String,
-    required: true,
+    required: true
   },
   photo: {
     type: String,
-    required: true,
-  },
+    required: true
+  }
 });
 
-const Player = mongoose.model('Player', playerSchema);
-
-export default Player;
+export default mongoose.model('Player', playerSchema);
