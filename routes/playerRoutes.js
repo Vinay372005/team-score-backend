@@ -1,56 +1,66 @@
 import express from 'express';
 import multer from 'multer';
 import Player from '../models/player.js';
-import sendSMS from '../utils/sendSMS.js';
+import twilio from 'twilio';
 import path from 'path';
 import fs from 'fs';
+import { fileURLToPath } from 'url';
 
+// Twilio setup
 const router = express.Router();
+const twilioClient = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
 
-// Set up multer storage
+// File upload config
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    const dir = 'uploads/';
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir);
+    const uploadPath = path.join(__dirname, '../uploads');
+    if (!fs.existsSync(uploadPath)) {
+      fs.mkdirSync(uploadPath);
     }
-    cb(null, dir);
+    cb(null, uploadPath);
   },
   filename: function (req, file, cb) {
-    const uniqueName = Date.now() + '-' + file.originalname.replace(/\s+/g, '_');
-    cb(null, uniqueName);
-  },
+    cb(null, Date.now() + '-' + file.originalname);
+  }
 });
-const upload = multer({ storage });
+const upload = multer({ storage: storage });
 
 // POST: Add new player
 router.post('/', upload.single('photo'), async (req, res) => {
   try {
     const { name, role, phone } = req.body;
-    const photoPath = req.file ? req.file.path : '';
+    const photo = req.file ? req.file.filename : '';
 
-    const player = new Player({ name, role, phone, photo: photoPath });
-    await player.save();
-
-    if (phone) {
-      await sendSMS(phone, `Hi ${name}, you are added to the team as ${role}!`);
+    if (!photo) {
+      return res.status(400).json({ error: "Photo is required" });
     }
 
-    res.status(201).json({ message: 'Player added successfully' });
+    const player = new Player({ name, role, phone, photo });
+    await player.save();
+
+    // Send SMS
+    await twilioClient.messages.create({
+      body: `🎉 Hello ${name}! You have been added to the team as ${role}. Match info will be updated soon!`,
+      from: process.env.TWILIO_PHONE_NUMBER,
+      to: phone
+    });
+
+    res.status(201).json({ message: "✅ Player added and SMS sent", player });
   } catch (err) {
     console.error("❌ Error adding player:", err);
-    res.status(500).json({ error: 'Failed to add player' });
+    res.status(500).json({ error: "Error adding player" });
   }
 });
 
-// GET: Get all players
+// GET: All players
 router.get('/', async (req, res) => {
   try {
     const players = await Player.find();
     res.json(players);
   } catch (err) {
-    console.error("❌ Error fetching players:", err);
-    res.status(500).json({ error: 'Failed to fetch players' });
+    res.status(500).json({ error: "Failed to fetch players" });
   }
 });
 
