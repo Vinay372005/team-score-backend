@@ -1,65 +1,49 @@
+// routes/scoreRoutes.js
 import express from 'express';
-import Score from '../models/score.js';
-import Player from '../models/player.js';
-import twilio from 'twilio';
+import Score from '../models/Score.js';
+import { sendBulkSMS } from '../utils/smsSender.js';
+import Player from '../models/Player.js';
 
 const router = express.Router();
-const twilioClient = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
 
-// GET: Current score
+// Get live score
 router.get('/', async (req, res) => {
   try {
-    let score = await Score.findOne();
-    if (!score) {
-      score = new Score();
-      await score.save();
-    }
+    const score = await Score.findOne();
+    if (!score) return res.json({});
     res.json(score);
   } catch (err) {
-    res.status(500).json({ error: "Failed to fetch score" });
+    res.status(500).json({ error: 'Failed to fetch score' });
   }
 });
 
-// POST: Update score
-router.post('/', async (req, res) => {
+// Update live score (Admin only)
+router.put('/', async (req, res) => {
+  const { runs, wickets, overs, batsman, bowler, status } = req.body;
   try {
-    const { runs, overs, batsman, bowler, status } = req.body;
+    const score = await Score.findOneAndUpdate(
+      {},
+      { runs, wickets, overs, batsman, bowler, status },
+      { upsert: true, new: true }
+    );
 
-    let score = await Score.findOne();
-    if (!score) {
-      score = new Score();
-    }
-
-    const isInningsStart = score.status !== 'Live' && status === 'Live';
-    const isInningsEnd = score.status === 'Live' && status === 'Finished';
-
-    score.runs = runs;
-    score.overs = overs;
-    score.batsman = batsman;
-    score.bowler = bowler;
-    score.status = status;
-    await score.save();
-
-    // SMS Notification
-    if (isInningsStart || isInningsEnd) {
-      const players = await Player.find();
-      const message = isInningsStart
-        ? `🏏 Innings has started! Stay tuned for updates.\nScore: ${runs}/${overs}`
-        : `🔚 Innings has ended!\nFinal Score: ${runs}/${overs}`;
-
-      for (let player of players) {
-        await twilioClient.messages.create({
-          body: message,
-          from: process.env.TWILIO_PHONE_NUMBER,
-          to: player.phone
-        });
-      }
-    }
-
-    res.json({ message: "✅ Score updated", score });
+    res.json(score);
   } catch (err) {
     console.error("❌ Error updating score:", err);
-    res.status(500).json({ error: "Failed to update score" });
+    res.status(500).json({ error: 'Failed to update score' });
+  }
+});
+
+// Send SMS when innings starts or ends
+router.post('/notify', async (req, res) => {
+  const { message } = req.body;
+  try {
+    const players = await Player.find();
+    const numbers = players.map(p => p.phone);
+    await sendBulkSMS(numbers, message);
+    res.json({ message: 'SMS sent to all players' });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to send SMS' });
   }
 });
 
